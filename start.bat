@@ -24,24 +24,75 @@ if exist "%APP_EXE%" (
 
 echo Packaged app was not found.
 echo Falling back to Electron development mode.
-echo [%date% %time%] Packaged app missing; using npm run dev:electron.>> "%LOG_FILE%"
+echo [%date% %time%] Packaged app missing; using Electron development mode.>> "%LOG_FILE%"
 
-where npm >nul 2>nul
+where node >nul 2>nul
 if errorlevel 1 (
+  echo Node.js was not found in PATH. Please install Node.js, then run this launcher again.
+  echo [%date% %time%] ERROR: node not found.>> "%LOG_FILE%"
+  goto fail
+)
+
+set "NPM_CMD="
+for /f "delims=" %%I in ('where npm.cmd 2^>nul') do (
+  if not defined NPM_CMD set "NPM_CMD=%%I"
+)
+if not defined NPM_CMD (
+  for /f "delims=" %%I in ('where npm 2^>nul') do (
+    if not defined NPM_CMD set "NPM_CMD=%%I"
+  )
+)
+
+if not defined NPM_CMD (
   echo npm was not found in PATH. Please install Node.js, then run this launcher again.
   echo [%date% %time%] ERROR: npm not found.>> "%LOG_FILE%"
   goto fail
 )
 
-if not exist "%~dp0node_modules\electron" (
-  echo Installing dependencies...
-  echo [%date% %time%] Installing dependencies with npm install.>> "%LOG_FILE%"
-  call npm install
-  if errorlevel 1 goto fail
-)
+echo [%date% %time%] Using npm: %NPM_CMD%>> "%LOG_FILE%"
 
-call npm run dev:electron
+call :ensure_dependencies
 if errorlevel 1 goto fail
+
+call "%NPM_CMD%" run dev:electron
+if errorlevel 1 goto fail
+exit /b 0
+
+:ensure_dependencies
+call :check_dependencies
+if "%DEPS_OK%"=="1" exit /b 0
+
+echo Installing dependencies...
+echo [%date% %time%] Installing dependencies with npm install --include=dev.>> "%LOG_FILE%"
+call "%NPM_CMD%" install --include=dev
+if errorlevel 1 exit /b 1
+
+call :check_dependencies
+if "%DEPS_OK%"=="1" exit /b 0
+
+echo Dependencies still look incomplete.
+echo Reinstalling dependencies from scratch...
+echo [%date% %time%] Dependencies incomplete after install; removing node_modules and reinstalling.>> "%LOG_FILE%"
+if exist "%~dp0node_modules" rmdir /s /q "%~dp0node_modules"
+if errorlevel 1 exit /b 1
+
+call "%NPM_CMD%" install --include=dev
+if errorlevel 1 exit /b 1
+
+call :check_dependencies
+if "%DEPS_OK%"=="1" exit /b 0
+
+echo Dependency repair finished, but required files are still missing.
+echo [%date% %time%] ERROR: Dependency repair failed required-file check.>> "%LOG_FILE%"
+exit /b 1
+
+:check_dependencies
+set "DEPS_OK=1"
+if not exist "%~dp0node_modules\react\package.json" set "DEPS_OK=0"
+if not exist "%~dp0node_modules\react-dom\package.json" set "DEPS_OK=0"
+if not exist "%~dp0node_modules\vite\bin\vite.js" set "DEPS_OK=0"
+if not exist "%~dp0node_modules\electron\cli.js" set "DEPS_OK=0"
+if not exist "%~dp0node_modules\electron\dist\electron.exe" set "DEPS_OK=0"
 exit /b 0
 
 :fail

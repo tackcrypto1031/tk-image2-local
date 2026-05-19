@@ -1,25 +1,19 @@
 import http from "node:http";
 import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const DEV_URL = "http://127.0.0.1:3000";
 
 const children = new Set();
+const currentFile = fileURLToPath(import.meta.url);
 
 function spawnCommand(command, args, options = {}) {
-  const commandLine = [command, ...args].map(quoteWindowsCmdArg).join(" ");
-  const child = process.platform === "win32"
-    ? spawn(process.env.ComSpec || "cmd.exe", ["/d", "/s", "/c", `"${commandLine}"`], {
-        ...options,
-        windowsVerbatimArguments: true
-      })
-    : spawn(command, args, options);
+  const child = spawn(command, args, options);
   children.add(child);
   child.on("exit", () => children.delete(child));
   return child;
-}
-
-function quoteWindowsCmdArg(value) {
-  return `"${String(value).replaceAll('"', '""')}"`;
 }
 
 async function waitForUrl(url, timeoutMs = 30000) {
@@ -54,31 +48,72 @@ function cleanup(exitCode = 0) {
   process.exit(exitCode);
 }
 
-process.on("SIGINT", () => cleanup(130));
-process.on("SIGTERM", () => cleanup(143));
+export function resolveDevToolPaths(projectRoot = process.cwd()) {
+  const root = path.resolve(projectRoot);
+  return {
+    nodeCommand: process.execPath,
+    viteBin: path.join(root, "node_modules", "vite", "bin", "vite.js"),
+    electronCli: path.join(root, "node_modules", "electron", "cli.js")
+  };
+}
 
-const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
-const electronCommand = process.platform === "win32" ? "electron.cmd" : "electron";
+export function validateDevToolPaths(toolPaths) {
+  const missing = [
+    ["Vite", toolPaths.viteBin],
+    ["Electron", toolPaths.electronCli]
+  ].filter(([, filePath]) => !existsSync(filePath));
 
-const vite = spawnCommand(npmCommand, ["run", "dev", "--", "--host", "127.0.0.1"], {
-  stdio: "inherit"
-});
-
-vite.on("exit", (code) => {
-  if (code !== 0 && children.size > 0) {
-    cleanup(code || 1);
+  if (missing.length === 0) {
+    return;
   }
-});
 
-await waitForUrl(DEV_URL);
+  const details = missing.map(([label, filePath]) => `  - ${label}: ${filePath}`).join("\n");
+  throw new Error(`Missing development dependencies:\n${details}\nRun start.bat again, or run npm install --include=dev.`);
+}
 
-const electron = spawnCommand(electronCommand, ["."], {
-  stdio: "inherit",
-  env: {
-    ...process.env,
-    BANANA_REMIX_DEV_URL: DEV_URL,
-    BANANA_REMIX_PROJECT_DIR: process.cwd()
+async function main() {
+  const projectRoot = process.cwd();
+  const toolPaths = resolveDevToolPaths(projectRoot);
+  validateDevToolPaths(toolPaths);
+
+  if (process.env.BANANA_REMIX_DEV_ELECTRON_CHECK === "1") {
+    console.log(`vite=${toolPaths.viteBin}`);
+    console.log(`electron=${toolPaths.electronCli}`);
+    return;
   }
-});
 
-electron.on("exit", (code) => cleanup(code || 0));
+  process.on("SIGINT", () => cleanup(130));
+  process.on("SIGTERM", () => cleanup(143));
+
+  const vite = spawnCommand(toolPaths.nodeCommand, [toolPaths.viteBin, "--host", "127.0.0.1"], {
+    cwd: projectRoot,
+    stdio: "inherit"
+  });
+
+  vite.on("exit", (code) => {
+    if (code !== 0 && children.size > 0) {
+      cleanup(code || 1);
+    }
+  });
+
+  await waitForUrl(DEV_URL);
+
+  const electron = spawnCommand(toolPaths.nodeCommand, [toolPaths.electronCli, "."], {
+    cwd: projectRoot,
+    stdio: "inherit",
+    env: {
+      ...process.env,
+      BANANA_REMIX_DEV_URL: DEV_URL,
+      BANANA_REMIX_PROJECT_DIR: projectRoot
+    }
+  });
+
+  electron.on("exit", (code) => cleanup(code || 0));
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === currentFile) {
+  main().catch((error) => {
+    console.error(error.message);
+    cleanup(1);
+  });
+}
