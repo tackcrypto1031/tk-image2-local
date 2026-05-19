@@ -42,6 +42,11 @@
       "target": [
         "dir"
       ]
+    },
+    "mac": {
+      "target": [
+        "dir"
+      ]
     }
   }
 }

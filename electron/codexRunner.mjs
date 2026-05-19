@@ -332,31 +332,115 @@ export function buildCodexCliSetupScript({ codexBin = DEFAULT_CODEX_BIN } = {}) 
   ].join("\r\n");
 }
 
+export function buildCodexCliSetupScriptBash({ codexBin = DEFAULT_CODEX_BIN } = {}) {
+  const codexLiteral = quotePosixShellString(codexBin || DEFAULT_CODEX_BIN);
+  return [
+    "#!/usr/bin/env bash",
+    "set -u",
+    `codexBin=${codexLiteral}`,
+    "pause_and_exit() {",
+    "  local code=\"${1:-0}\"",
+    "  echo",
+    "  read -r -p '按 Enter 關閉此視窗' _ || true",
+    "  exit \"$code\"",
+    "}",
+    "echo 'Codex CLI 安裝 / 登入檢查'",
+    "echo '此視窗由 Codex 圖像畫布開啟。完成後請回到工具左下角查看狀態。'",
+    "echo",
+    "echo '檢查 Codex CLI...'",
+    "if ! command -v \"$codexBin\" >/dev/null 2>&1; then",
+    "  echo '未偵測到 Codex CLI，準備使用 npm 安裝 @openai/codex@latest。'",
+    "  if ! command -v npm >/dev/null 2>&1; then",
+    "    echo '找不到 npm。請先安裝 Node.js，再重新點擊左下角 Codex CLI 狀態按鈕。'",
+    "    pause_and_exit 1",
+    "  fi",
+    "  echo",
+    "  echo '安裝 Codex CLI...'",
+    "  if ! npm install -g @openai/codex@latest; then",
+    "    installCode=$?",
+    "    echo \"Codex CLI 安裝失敗，結束碼：$installCode\"",
+    "    pause_and_exit \"$installCode\"",
+    "  fi",
+    "  if ! command -v \"$codexBin\" >/dev/null 2>&1; then",
+    "    npmPrefix=\"$(npm prefix -g 2>/dev/null | head -n 1)\"",
+    "    if [ -n \"$npmPrefix\" ]; then",
+    "      candidate=\"$npmPrefix/bin/codex\"",
+    "      if [ -x \"$candidate\" ]; then",
+    "        codexBin=\"$candidate\"",
+    "      fi",
+    "    fi",
+    "  fi",
+    "  if ! command -v \"$codexBin\" >/dev/null 2>&1; then",
+    "    echo '已執行安裝，但目前視窗仍找不到 codex 指令。請重新開啟工具或手動確認 npm global PATH。'",
+    "    pause_and_exit 1",
+    "  fi",
+    "else",
+    "  echo \"已偵測到 Codex CLI：$(command -v \"$codexBin\")\"",
+    "fi",
+    "echo",
+    "echo '開啟 Codex 登入流程...'",
+    "echo '請依照 Codex CLI 指示完成 ChatGPT 登入。'",
+    "\"$codexBin\" login",
+    "loginCode=$?",
+    "if [ \"$loginCode\" = \"0\" ]; then",
+    "  echo 'Codex 登入流程已結束。回到工具後，左下角狀態會自動更新。'",
+    "else",
+    "  echo \"Codex login 結束碼：$loginCode\"",
+    "fi",
+    "pause_and_exit \"$loginCode\"",
+    ""
+  ].join("\n");
+}
+
 async function launchCodexCliSetupWindow({ codexBin = DEFAULT_CODEX_BIN } = {}) {
-  if (process.platform !== "win32") {
+  if (process.platform === "win32") {
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "banana-codex-cli-setup-"));
+    const scriptPath = path.join(tempDir, "setup-codex-cli.ps1");
+    await fs.writeFile(scriptPath, buildCodexCliSetupScript({ codexBin }), "utf8");
+
+    const title = "Codex CLI Setup";
+    const escapedScriptPath = scriptPath.replaceAll('"', '""');
+    const startCommand = `start "${title}" powershell.exe -NoLogo -ExecutionPolicy Bypass -File "${escapedScriptPath}"`;
+    const child = spawn(process.env.ComSpec || "cmd.exe", ["/d", "/s", "/c", startCommand], {
+      detached: true,
+      stdio: "ignore",
+      windowsHide: false
+    });
+    child.unref();
     return {
-      ok: false,
-      message: "此工具目前只支援在 Windows 自動開啟 Codex CLI 安裝/登入視窗。請手動執行 npm install -g @openai/codex@latest 與 codex login。"
+      ok: true,
+      message: "已開啟 Codex CLI 安裝/登入視窗。",
+      pid: child.pid
     };
   }
 
-  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "banana-codex-cli-setup-"));
-  const scriptPath = path.join(tempDir, "setup-codex-cli.ps1");
-  await fs.writeFile(scriptPath, buildCodexCliSetupScript({ codexBin }), "utf8");
+  if (process.platform === "darwin") {
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "banana-codex-cli-setup-"));
+    const scriptPath = path.join(tempDir, "setup-codex-cli.sh");
+    await fs.writeFile(scriptPath, buildCodexCliSetupScriptBash({ codexBin }), { mode: 0o700 });
 
-  const title = "Codex CLI Setup";
-  const escapedScriptPath = scriptPath.replaceAll('"', '""');
-  const startCommand = `start "${title}" powershell.exe -NoLogo -ExecutionPolicy Bypass -File "${escapedScriptPath}"`;
-  const child = spawn(process.env.ComSpec || "cmd.exe", ["/d", "/s", "/c", startCommand], {
-    detached: true,
-    stdio: "ignore",
-    windowsHide: false
-  });
-  child.unref();
+    const shellCommand = `bash ${quotePosixShellString(scriptPath)}; exit`;
+    const appleScript = [
+      "tell application \"Terminal\"",
+      "  activate",
+      `  do script ${quoteAppleScriptString(shellCommand)}`,
+      "end tell"
+    ].join("\n");
+    const child = spawn("osascript", ["-e", appleScript], {
+      detached: true,
+      stdio: "ignore"
+    });
+    child.unref();
+    return {
+      ok: true,
+      message: "已開啟 Codex CLI 安裝/登入視窗。",
+      pid: child.pid
+    };
+  }
+
   return {
-    ok: true,
-    message: "已開啟 Codex CLI 安裝/登入視窗。",
-    pid: child.pid
+    ok: false,
+    message: "此工具目前只支援在 Windows 與 macOS 自動開啟 Codex CLI 安裝/登入視窗。請手動執行 npm install -g @openai/codex@latest 與 codex login。"
   };
 }
 
@@ -571,6 +655,14 @@ function quoteWindowsCmdArg(value) {
 
 function quotePowerShellString(value) {
   return `'${String(value).replaceAll("'", "''")}'`;
+}
+
+function quotePosixShellString(value) {
+  return `'${String(value).replaceAll("'", "'\\''")}'`;
+}
+
+function quoteAppleScriptString(value) {
+  return `"${String(value).replaceAll("\\", "\\\\").replaceAll("\"", "\\\"")}"`;
 }
 
 function sanitizeFileName(value) {

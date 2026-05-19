@@ -611,7 +611,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ element, onSave,
 
   const runGeneration = async (context: GenerationContext) => {
     if (!window.codexImage) {
-      alert("Codex 圖片編輯只能在 Electron 桌面版使用。請用 start.bat 或 npm run dev:electron 啟動。");
+      alert("Codex 圖片編輯只能在 Electron 桌面版使用。請用 start.bat / start.command 或 npm run dev:electron 啟動。");
       return;
     }
     setIsLoading(true);

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 
@@ -46,4 +46,29 @@ test("Windows launcher prefers dev mode in source checkouts", () => {
   assert.match(launcher, /SOURCE_CHECKOUT/i);
   assert.match(launcher, /BANANA_REMIX_USE_PACKAGED/i);
   assert.match(launcher, /goto dev_mode/i);
+});
+
+test("macOS launcher exists and is executable", () => {
+  const launcherPath = new URL("../start.command", import.meta.url);
+  const stat = statSync(launcherPath);
+
+  assert.equal(stat.isFile(), true);
+  assert.equal((stat.mode & 0o111) !== 0, true, "start.command should be executable (chmod +x)");
+});
+
+test("macOS launcher uses bash shebang and respects source checkout vs packaged app", () => {
+  const launcher = readFileSync(new URL("../start.command", import.meta.url), "utf8");
+
+  assert.match(launcher, /^#!\/usr\/bin\/env bash/);
+  assert.match(launcher, /SOURCE_CHECKOUT/);
+  assert.match(launcher, /BANANA_REMIX_USE_PACKAGED/);
+  assert.match(launcher, /release\/mac/);
+  assert.match(launcher, /npm run dev:electron/);
+});
+
+test("macOS launcher dependency preflight matches the Windows electron CLI check", () => {
+  const launcher = readFileSync(new URL("../start.command", import.meta.url), "utf8");
+
+  assert.match(launcher, /node_modules\/electron\/cli\.js/);
+  assert.doesNotMatch(launcher, /node_modules\/electron\/dist\/electron\.exe/);
 });
