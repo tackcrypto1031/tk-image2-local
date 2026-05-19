@@ -386,7 +386,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ element, onSave,
     ctx.stroke();
   };
   
-  const handleWheel = (e: React.WheelEvent) => {
+  const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
     const container = containerRef.current;
     if (!container) return;
@@ -406,7 +406,16 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ element, onSave,
 
     setZoom(newZoom);
     setPan({ x: newPanX, y: newPanY });
-  };
+  }, [pan.x, pan.y, zoom]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+    };
+  }, [handleWheel]);
   
   const compositeImageWithMask = useCallback(async (baseSrc: string, maskDataUrl: string): Promise<string> => {
     const image = new Image();
@@ -720,8 +729,8 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ element, onSave,
 
 
   return (
-    <div className="absolute inset-0 z-40 bg-black/60 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-lg shadow-2xl w-full max-w-7xl h-[95vh] flex flex-col" onClick={e => e.stopPropagation()}>
+    <div className="modal-scrim absolute inset-0 z-40 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="sketch-modal flex h-[95vh] w-full max-w-7xl flex-col" onClick={e => e.stopPropagation()}>
         <div className="p-4 border-b flex justify-between items-center bg-gray-50 rounded-t-lg flex-shrink-0">
           <h2 className="text-xl font-bold text-gray-800">編輯圖片</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
@@ -735,7 +744,6 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({ element, onSave,
                 onMouseUp={finishDrawing}
                 onMouseLeave={finishDrawing}
                 onMouseMove={draw}
-                onWheel={handleWheel}
             >
             {(isLoading || isBaking || isAdjusting) && (
                     <div className="absolute inset-0 z-30 bg-black/50 flex flex-col items-center justify-center text-white">

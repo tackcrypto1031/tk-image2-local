@@ -1,0 +1,521 @@
+:root {
+  --hd-paper: oklch(0.972 0.024 82);
+  --hd-sheet: oklch(0.987 0.018 83);
+  --hd-paper-grid: oklch(0.29 0.018 70 / 0.075);
+  --hd-ink: oklch(0.235 0.022 63);
+  --hd-pencil: oklch(0.42 0.018 75);
+  --hd-red: oklch(0.64 0.19 31);
+  --hd-yellow: oklch(0.84 0.14 86);
+  --hd-blue: oklch(0.61 0.15 254);
+  --hd-green: oklch(0.68 0.14 158);
+  --hd-pink: oklch(0.72 0.14 354);
+  --hd-orange: oklch(0.72 0.16 55);
+  --hd-purple: oklch(0.59 0.15 303);
+  --hd-muted: oklch(0.55 0.028 74);
+  --hd-highlighter: oklch(0.84 0.14 86 / 0.48);
+  --hd-shadow-ink: oklch(0.235 0.022 63 / 0.78);
+  --radius-rough: 22px 17px 20px 15px / 15px 21px 17px 23px;
+  --font-display: "Comic Sans MS", "Marker Felt", "PingFang TC", "Noto Sans TC", sans-serif;
+  --font-body: "PingFang TC", "Noto Sans TC", "Segoe UI", system-ui, sans-serif;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden;
+  background: var(--hd-paper);
+  color: var(--hd-ink);
+  font-family: var(--font-body);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.app-shell {
+  background: var(--hd-paper);
+  color: var(--hd-ink);
+  font-family: var(--font-body);
+}
+
+.app-shell::before {
+  content: "";
+  position: fixed;
+  width: 280px;
+  height: 220px;
+  right: 6vw;
+  top: 24vh;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse, oklch(0.42 0.06 54 / 0.11) 0%, transparent 70%);
+  transform: rotate(-9deg);
+}
+
+.paper-canvas {
+  background-color: var(--hd-paper) !important;
+  background-image:
+    linear-gradient(var(--hd-paper-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--hd-paper-grid) 1px, transparent 1px),
+    radial-gradient(circle at 72% 28%, oklch(0.84 0.14 86 / 0.12), transparent 24%),
+    radial-gradient(circle at 18% 78%, oklch(0.72 0.14 354 / 0.10), transparent 28%) !important;
+  background-size: 22px 22px, 22px 22px, 680px 680px, 620px 620px !important;
+}
+
+.sketch-panel,
+.float-panel,
+.generation-job-panel,
+.context-sketch-menu,
+.sketch-modal {
+  background: var(--hd-sheet) !important;
+  border: 2px solid var(--hd-ink) !important;
+  border-radius: var(--radius-rough) !important;
+  box-shadow:
+    6px 7px 0 var(--hd-shadow-ink),
+    0 16px 34px oklch(0.235 0.022 63 / 0.12) !important;
+  color: var(--hd-ink) !important;
+  backdrop-filter: none !important;
+}
+
+.tool-panel {
+  width: 17rem;
+  transform: rotate(-0.35deg);
+}
+
+.tool-panel::before,
+.generation-job-panel::before,
+.context-sketch-menu::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  width: 64px;
+  height: 18px;
+  transform: translateX(-50%) rotate(-4deg);
+  border: 1px solid oklch(0.98 0.01 84 / 0.72);
+  background: oklch(0.98 0.012 84 / 0.58);
+  box-shadow: 0 1px 2px oklch(0.235 0.022 63 / 0.12);
+}
+
+.panel-title {
+  color: var(--hd-ink) !important;
+  font-family: var(--font-display);
+  letter-spacing: 0;
+  transform: rotate(-0.8deg);
+}
+
+.panel-copy,
+.muted-pencil {
+  color: var(--hd-pencil) !important;
+}
+
+.scribble-tag {
+  display: inline-block;
+  margin-bottom: 0.35rem;
+  color: var(--hd-red);
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  transform: rotate(1.2deg);
+}
+
+.sketch-section {
+  border-top: 2px dashed oklch(0.235 0.022 63 / 0.22) !important;
+  padding-top: 0.85rem;
+  margin-top: 0.35rem;
+}
+
+.section-title {
+  display: inline-block;
+  color: var(--hd-ink) !important;
+  font-family: var(--font-display);
+  font-size: 0.96rem;
+  font-weight: 700;
+  background: linear-gradient(180deg, transparent 52%, var(--hd-highlighter) 52%);
+  padding: 0 0.18rem;
+  transform: rotate(-0.5deg);
+}
+
+.btn-sketch {
+  border: 2px solid var(--hd-ink) !important;
+  border-radius: 17px 13px 16px 12px / 12px 17px 13px 16px !important;
+  box-shadow: 3px 3px 0 var(--hd-shadow-ink) !important;
+  color: var(--hd-ink) !important;
+  background: var(--hd-sheet) !important;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0;
+  transition: transform 160ms ease-out, box-shadow 160ms ease-out, filter 160ms ease-out;
+}
+
+.btn-sketch:hover:not(:disabled) {
+  filter: saturate(1.04);
+  transform: translateY(-1px) rotate(-0.8deg);
+  box-shadow: 4px 5px 0 var(--hd-shadow-ink) !important;
+}
+
+.btn-sketch:focus-visible {
+  outline: 3px solid var(--hd-yellow);
+  outline-offset: 2px;
+}
+
+.btn-sketch:disabled {
+  cursor: not-allowed;
+  opacity: 0.54;
+  filter: grayscale(0.35);
+  box-shadow: 2px 2px 0 oklch(0.235 0.022 63 / 0.35) !important;
+}
+
+.btn-red {
+  background: var(--hd-red) !important;
+  color: var(--hd-paper) !important;
+}
+
+.btn-blue {
+  background: var(--hd-blue) !important;
+  color: var(--hd-paper) !important;
+}
+
+.btn-green {
+  background: var(--hd-green) !important;
+  color: var(--hd-paper) !important;
+}
+
+.btn-yellow {
+  background: var(--hd-yellow) !important;
+}
+
+.btn-pink {
+  background: var(--hd-pink) !important;
+}
+
+.btn-orange {
+  background: var(--hd-orange) !important;
+  color: var(--hd-paper) !important;
+}
+
+.btn-purple {
+  background: var(--hd-purple) !important;
+  color: var(--hd-paper) !important;
+}
+
+.btn-neutral {
+  background: oklch(0.92 0.025 82) !important;
+}
+
+.btn-icon-sketch {
+  background: var(--hd-sheet) !important;
+  border: 2px solid var(--hd-ink) !important;
+  border-radius: 50% 45% 55% 48% / 52% 46% 54% 48% !important;
+  box-shadow: 3px 3px 0 var(--hd-shadow-ink) !important;
+  color: var(--hd-ink) !important;
+}
+
+.sketch-input,
+.sketch-select {
+  background: oklch(0.99 0.012 83) !important;
+  border: 2px solid var(--hd-ink) !important;
+  border-radius: 14px 11px 13px 10px / 10px 14px 11px 13px !important;
+  color: var(--hd-ink) !important;
+  box-shadow: inset 2px 2px 0 oklch(0.235 0.022 63 / 0.08);
+}
+
+.sketch-input:focus,
+.sketch-select:focus {
+  outline: 3px solid var(--hd-highlighter) !important;
+  outline-offset: 2px;
+}
+
+.color-dot {
+  border: 2px solid var(--hd-ink) !important;
+  border-radius: 50% 44% 52% 47% / 45% 52% 44% 51% !important;
+  box-shadow: 2px 2px 0 oklch(0.235 0.022 63 / 0.28);
+}
+
+.color-dot:hover {
+  transform: rotate(-8deg) scale(1.08);
+}
+
+.color-dot.bg-gray-700,
+.note-sheet.bg-gray-700 {
+  background: oklch(0.50 0.023 71) !important;
+  color: var(--hd-paper) !important;
+}
+
+.color-dot.bg-red-500,
+.note-sheet.bg-red-500 {
+  background: var(--hd-red) !important;
+  color: var(--hd-paper) !important;
+}
+
+.color-dot.bg-orange-500,
+.note-sheet.bg-orange-500 {
+  background: var(--hd-orange) !important;
+  color: var(--hd-paper) !important;
+}
+
+.color-dot.bg-yellow-500,
+.note-sheet.bg-yellow-500 {
+  background: var(--hd-yellow) !important;
+  color: var(--hd-ink) !important;
+}
+
+.color-dot.bg-green-500,
+.note-sheet.bg-green-500 {
+  background: var(--hd-green) !important;
+  color: var(--hd-paper) !important;
+}
+
+.color-dot.bg-blue-600,
+.note-sheet.bg-blue-600 {
+  background: var(--hd-blue) !important;
+  color: var(--hd-paper) !important;
+}
+
+.color-dot.bg-purple-600,
+.note-sheet.bg-purple-600 {
+  background: var(--hd-purple) !important;
+  color: var(--hd-paper) !important;
+}
+
+.color-dot.bg-pink-500,
+.note-sheet.bg-pink-500 {
+  background: var(--hd-pink) !important;
+  color: var(--hd-ink) !important;
+}
+
+.arrow-line.text-gray-700,
+.arrow-line.text-gray-500 {
+  color: var(--hd-pencil) !important;
+}
+
+.arrow-line.text-red-500 {
+  color: var(--hd-red) !important;
+}
+
+.arrow-line.text-orange-500 {
+  color: var(--hd-orange) !important;
+}
+
+.arrow-line.text-yellow-500 {
+  color: oklch(0.64 0.13 86) !important;
+}
+
+.arrow-line.text-green-500 {
+  color: var(--hd-green) !important;
+}
+
+.arrow-line.text-blue-600 {
+  color: var(--hd-blue) !important;
+}
+
+.arrow-line.text-purple-600 {
+  color: var(--hd-purple) !important;
+}
+
+.arrow-line.text-pink-500 {
+  color: var(--hd-pink) !important;
+}
+
+.note-sheet {
+  position: relative;
+  overflow: hidden;
+  border: 2.5px solid var(--hd-ink) !important;
+  border-radius: var(--radius-rough) !important;
+  box-shadow:
+    7px 8px 0 oklch(0.235 0.022 63 / 0.30),
+    0 10px 16px oklch(0.235 0.022 63 / 0.10) !important;
+  font-family: var(--font-display);
+}
+
+.note-sheet::before {
+  content: "";
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 58px;
+  height: 17px;
+  transform: translateX(-50%) rotate(-5deg);
+  background: oklch(0.98 0.012 84 / 0.48);
+  border: 1px solid oklch(0.98 0.012 84 / 0.76);
+  pointer-events: none;
+}
+
+.note-textarea {
+  color: inherit !important;
+  line-height: 1.46;
+  text-shadow: none;
+}
+
+.note-textarea::placeholder {
+  color: oklch(0.235 0.022 63 / 0.58) !important;
+}
+
+.image-sheet,
+.drawing-sheet {
+  border: 2px solid var(--hd-ink) !important;
+  border-radius: 18px 13px 16px 12px / 12px 18px 13px 16px !important;
+  box-shadow: 7px 8px 0 oklch(0.235 0.022 63 / 0.22) !important;
+}
+
+.drawing-sheet {
+  background: var(--hd-sheet) !important;
+}
+
+.arrow-line svg path {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.selection-sketch,
+.marquee-sketch,
+.outpaint-frame {
+  border: 2px dashed var(--hd-red) !important;
+  border-radius: 18px 14px 16px 13px / 13px 17px 14px 16px;
+  background: oklch(0.64 0.19 31 / 0.08) !important;
+}
+
+.transform-handle {
+  background: var(--hd-yellow) !important;
+  border: 2px solid var(--hd-ink) !important;
+  box-shadow: 2px 2px 0 var(--hd-shadow-ink);
+}
+
+.outpaint-frame {
+  border-color: var(--hd-green) !important;
+  background: oklch(0.68 0.14 158 / 0.12) !important;
+}
+
+.context-sketch-item {
+  color: var(--hd-ink) !important;
+  font-weight: 600;
+}
+
+.context-sketch-item:hover:not(:disabled) {
+  background: var(--hd-highlighter) !important;
+}
+
+.context-sketch-item:disabled {
+  color: oklch(0.55 0.028 74 / 0.55) !important;
+}
+
+.sketch-divider {
+  border-color: oklch(0.235 0.022 63 / 0.22) !important;
+}
+
+.cli-status {
+  background: var(--hd-sheet) !important;
+  border: 2px solid var(--hd-ink) !important;
+  border-radius: var(--radius-rough) !important;
+  box-shadow: 5px 6px 0 var(--hd-shadow-ink) !important;
+  color: var(--hd-ink) !important;
+}
+
+.cli-action {
+  border: 1px solid var(--hd-ink);
+  border-radius: 12px 10px 11px 9px / 9px 12px 10px 11px !important;
+  background: var(--hd-yellow) !important;
+  color: var(--hd-ink) !important;
+}
+
+.drag-overlay {
+  background: oklch(0.235 0.022 63 / 0.58) !important;
+}
+
+.drag-card {
+  background: var(--hd-yellow) !important;
+  color: var(--hd-ink) !important;
+  border-color: var(--hd-ink) !important;
+  border-radius: var(--radius-rough) !important;
+  box-shadow: 7px 7px 0 var(--hd-shadow-ink);
+  font-family: var(--font-display);
+}
+
+.modal-scrim {
+  background:
+    radial-gradient(circle at 20% 20%, oklch(0.84 0.14 86 / 0.18), transparent 28%),
+    oklch(0.235 0.022 63 / 0.58) !important;
+}
+
+.sketch-modal .bg-gray-50,
+.sketch-modal .bg-gray-100,
+.sketch-modal .bg-gray-200 {
+  background: oklch(0.95 0.021 82) !important;
+}
+
+.sketch-modal .bg-white {
+  background: var(--hd-sheet) !important;
+}
+
+.sketch-modal .bg-blue-500,
+.sketch-modal .bg-blue-600 {
+  background: var(--hd-blue) !important;
+  color: var(--hd-paper) !important;
+}
+
+.sketch-modal .bg-green-600 {
+  background: var(--hd-green) !important;
+  color: var(--hd-paper) !important;
+}
+
+.sketch-modal .bg-orange-500 {
+  background: var(--hd-orange) !important;
+  color: var(--hd-paper) !important;
+}
+
+.sketch-modal .bg-purple-600 {
+  background: var(--hd-purple) !important;
+  color: var(--hd-paper) !important;
+}
+
+.sketch-modal .bg-red-500,
+.sketch-modal .bg-red-600 {
+  background: var(--hd-red) !important;
+  color: var(--hd-paper) !important;
+}
+
+.sketch-modal .border-b,
+.sketch-modal .border-t,
+.sketch-modal .border-l,
+.sketch-modal .border-gray-300 {
+  border-color: oklch(0.235 0.022 63 / 0.22) !important;
+}
+
+.sketch-modal h2,
+.sketch-modal h3 {
+  color: var(--hd-ink) !important;
+  font-family: var(--font-display);
+}
+
+.sketch-modal button {
+  border: 2px solid var(--hd-ink) !important;
+  border-radius: 15px 11px 14px 10px / 10px 15px 11px 14px !important;
+  box-shadow: 2px 2px 0 oklch(0.235 0.022 63 / 0.42);
+  font-weight: 700;
+}
+
+.sketch-modal canvas,
+.sketch-modal img.shadow-lg {
+  border: 2px solid var(--hd-ink);
+  border-radius: 16px 12px 14px 11px / 11px 16px 12px 14px;
+  box-shadow: 6px 7px 0 oklch(0.235 0.022 63 / 0.22) !important;
+}
+
+.sketch-modal input[type="text"],
+.sketch-modal input[type="range"] {
+  accent-color: var(--hd-red);
+}
+
+.sketch-modal input[type="text"] {
+  background: var(--hd-sheet) !important;
+  border: 2px solid var(--hd-ink) !important;
+  color: var(--hd-ink) !important;
+}

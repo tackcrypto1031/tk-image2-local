@@ -225,7 +225,7 @@ export const TransformableElement: React.FC<TransformableElementProps> = ({ elem
                     case 'note':
                         const alignmentClass = el.textAlign === 'center' ? 'text-center' : 'text-left';
                         return (
-                           <div style={style} className={`rounded-lg shadow-md text-white font-medium flex items-center justify-center ${el.color}`}>
+                           <div style={style} className={`note-sheet flex items-center justify-center font-medium ${el.color}`}>
                                 <textarea
                                     ref={textareaRef}
                                     value={el.content}
@@ -239,7 +239,7 @@ export const TransformableElement: React.FC<TransformableElementProps> = ({ elem
                                         e.stopPropagation();
                                       }
                                     }}
-                                    className={`w-full h-full bg-transparent text-white p-4 resize-none border-none focus:outline-none placeholder-gray-200/70 ${isEditing ? 'cursor-text' : 'cursor-move'} ${alignmentClass}`}
+                                    className={`note-textarea h-full w-full resize-none border-none bg-transparent p-4 focus:outline-none ${isEditing ? 'cursor-text' : 'cursor-move'} ${alignmentClass}`}
                                     style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
                                     placeholder="輸入內容..."
                                 />
@@ -247,15 +247,15 @@ export const TransformableElement: React.FC<TransformableElementProps> = ({ elem
                         );
                     case 'image':
                         return (
-                            <img src={el.src} alt="使用者上傳圖片" style={style} className="shadow-lg rounded-md object-cover" draggable="false" />
+                            <img src={el.src} alt="使用者上傳圖片" style={style} className="image-sheet object-cover" draggable="false" />
                         );
                     case 'drawing':
                         return (
-                            <div style={style} className="bg-white shadow-md rounded-lg flex items-center justify-center border border-gray-200">
+                            <div style={style} className="drawing-sheet flex items-center justify-center">
                                 {el.src ? (
-                                    <img src={el.src} alt="使用者繪圖" style={style} className="rounded-lg object-contain" draggable="false" />
+                                    <img src={el.src} alt="使用者繪圖" style={style} className="object-contain" draggable="false" />
                                 ) : (
-                                    <span className="text-gray-400 p-2 text-center">雙擊開始繪圖</span>
+                                    <span className="muted-pencil p-2 text-center">雙擊開始繪圖</span>
                                 )}
                             </div>
                         );
@@ -264,10 +264,10 @@ export const TransformableElement: React.FC<TransformableElementProps> = ({ elem
                         const viewBoxWidth = 150;
                         const viewBoxHeight = 30;
                         return (
-                            <div style={{ ...style, display: 'flex', alignItems: 'center', justifyContent: 'center' }} className={el.color}>
+                            <div style={{ ...style, display: 'flex', alignItems: 'center', justifyContent: 'center' }} className={`arrow-line ${el.color}`}>
                                 <svg width="100%" height={viewBoxHeight} viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`} preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d={`M0 ${viewBoxHeight / 2} H${viewBoxWidth - 10}`} stroke="currentColor" strokeWidth="4" />
-                                    <path d={`M${viewBoxWidth - 20} ${viewBoxHeight / 2 - 10} L${viewBoxWidth - 5} ${viewBoxHeight / 2} L${viewBoxWidth - 20} ${viewBoxHeight / 2 + 10}`} stroke="currentColor" strokeWidth="4" fill="none" />
+                                    <path d={`M0 ${viewBoxHeight / 2} Q 38 ${viewBoxHeight / 2 - 8} 74 ${viewBoxHeight / 2 + 2} T${viewBoxWidth - 10} ${viewBoxHeight / 2}`} stroke="currentColor" strokeWidth="4" />
+                                    <path d={`M${viewBoxWidth - 22} ${viewBoxHeight / 2 - 10} L${viewBoxWidth - 5} ${viewBoxHeight / 2} L${viewBoxWidth - 22} ${viewBoxHeight / 2 + 10}`} stroke="currentColor" strokeWidth="4" fill="none" />
                                 </svg>
                             </div>
                         );
@@ -279,22 +279,22 @@ export const TransformableElement: React.FC<TransformableElementProps> = ({ elem
 
             {isSelected && !isOutpainting && (
                 <>
-                    <div className="absolute -inset-1 border-2 border-blue-500 border-dashed rounded-lg pointer-events-none" />
+                    <div className="selection-sketch pointer-events-none absolute -inset-1" />
                     
                     {element.type === 'arrow' ? (
                         <>
-                            <div className="absolute top-1/2 -left-2 -translate-y-1/2 w-4 h-4 bg-white border-2 border-blue-500 rounded-full cursor-grab transform-handle"
+                            <div className="transform-handle absolute -left-2 top-1/2 h-4 w-4 -translate-y-1/2 cursor-grab rounded-full"
                                 onMouseDown={(e) => handleInteractionStart(e, 'resize-arrow-start')} />
-                            <div className="absolute top-1/2 -right-2 -translate-y-1/2 w-4 h-4 bg-white border-2 border-blue-500 rounded-full cursor-grab transform-handle"
+                            <div className="transform-handle absolute -right-2 top-1/2 h-4 w-4 -translate-y-1/2 cursor-grab rounded-full"
                                 onMouseDown={(e) => handleInteractionStart(e, 'resize-arrow-end')} />
                         </>
                     ) : (
                         <>
-                            <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-5 h-5 bg-blue-500 rounded-full cursor-alias transform-handle"
+                            <div className="transform-handle absolute -top-8 left-1/2 h-5 w-5 -translate-x-1/2 cursor-alias rounded-full"
                                 onMouseDown={(e) => handleInteractionStart(e, 'rotate')} />
-                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-0.5 h-3 bg-blue-500 pointer-events-none" />
+                            <div className="pointer-events-none absolute -top-3 left-1/2 h-3 w-0.5 -translate-x-1/2 bg-[color:var(--hd-ink)]" />
 
-                            <div className="absolute -bottom-2 -right-2 w-4 h-4 bg-white border-2 border-blue-500 rounded-sm cursor-se-resize transform-handle"
+                            <div className="transform-handle absolute -bottom-2 -right-2 h-4 w-4 cursor-se-resize"
                                 onMouseDown={(e) => handleInteractionStart(e, 'resize')} />
                         </>
                     )}

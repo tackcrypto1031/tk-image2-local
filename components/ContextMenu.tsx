@@ -35,7 +35,7 @@ const MenuItem: React.FC<{ onClick: () => void; children: React.ReactNode; disab
     <button
         onClick={onClick}
         disabled={disabled}
-        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:text-gray-400 disabled:bg-transparent"
+        className="context-sketch-item w-full px-4 py-2 text-left text-sm disabled:bg-transparent"
     >
         {children}
     </button>
@@ -90,7 +90,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ menuData, onClose, act
         <div
             ref={menuRef}
             style={menuStyle}
-            className="w-48 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none py-1"
+            className="context-sketch-menu w-48 py-1 focus:outline-none"
             onClick={(e) => e.stopPropagation()} // Prevent clicks inside from closing the menu via the main app listener
         >
             {menuData.elementId ? (
@@ -104,7 +104,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ menuData, onClose, act
                             <MenuItem onClick={() => handleAction(() => actions.startOutpainting(menuData.elementId!))}>
                                 擴展圖片
                             </MenuItem>
-                             <div className="border-t my-1 border-gray-200" />
+                             <div className="sketch-divider my-1 border-t" />
                         </>
                     )}
                     {elementType === 'drawing' && (
@@ -112,7 +112,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ menuData, onClose, act
                             <MenuItem onClick={() => handleAction(() => actions.editDrawing(menuData.elementId!))}>
                                 編輯繪圖
                             </MenuItem>
-                             <div className="border-t my-1 border-gray-200" />
+                             <div className="sketch-divider my-1 border-t" />
                         </>
                     )}
                     {(elementType === 'image' || elementType === 'drawing') && (
@@ -120,14 +120,14 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ menuData, onClose, act
                             <MenuItem onClick={() => handleAction(() => actions.downloadImage(menuData.elementId!))}>
                                 下載圖片
                             </MenuItem>
-                            <div className="border-t my-1 border-gray-200" />
+                            <div className="sketch-divider my-1 border-t" />
                         </>
                     )}
                     <div className="relative" onMouseLeave={() => setColorSubMenuVisible(false)}>
                         <button
                             onMouseEnter={handleColorSubMenu}
                             disabled={!canChangeColor}
-                            className="w-full flex justify-between items-center text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:text-gray-400 disabled:bg-transparent"
+                            className="context-sketch-item flex w-full items-center justify-between px-4 py-2 text-left text-sm disabled:bg-transparent"
                         >
                             <span>變更顏色</span>
                             <span className="text-xs">▶</span>
@@ -135,14 +135,14 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ menuData, onClose, act
                          {colorSubMenuVisible && canChangeColor && (
                              <div 
                                 style={colorSubMenuStyle}
-                                className="w-48 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none py-1"
+                                className="context-sketch-menu w-48 py-1 focus:outline-none"
                              >
                                  <div className="p-2 grid grid-cols-5 gap-2">
                                      {COLORS.map(color => (
                                          <button
                                              key={color.name}
                                              onClick={() => handleAction(() => actions.changeColor(color.bg))}
-                                             className={`w-6 h-6 rounded-full border-2 ${color.bg} border-white`}
+                                             className={`color-dot h-6 w-6 ${color.bg}`}
                                              aria-label={`改成${color.name}`}
                                          />
                                      ))}
@@ -150,10 +150,10 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ menuData, onClose, act
                              </div>
                          )}
                     </div>
-                    <div className="border-t my-1 border-gray-200" />
+                    <div className="sketch-divider my-1 border-t" />
                     <MenuItem onClick={() => handleAction(actions.bringToFront)}>↑ 移到最上層</MenuItem>
                     <MenuItem onClick={() => handleAction(actions.sendToBack)}>↓ 移到最下層</MenuItem>
-                    <div className="border-t my-1 border-gray-200" />
+                    <div className="sketch-divider my-1 border-t" />
                     <MenuItem onClick={() => handleAction(actions.deleteElement)}>刪除</MenuItem>
                 </>
             ) : (

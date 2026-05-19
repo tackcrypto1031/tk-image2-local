@@ -39,3 +39,11 @@ test("Windows launcher does not use a second post-install batch label jump", () 
 
   assert.doesNotMatch(launcher, /call\s+:ensure_electron_runtime/i);
 });
+
+test("Windows launcher prefers dev mode in source checkouts", () => {
+  const launcher = readFileSync(new URL("../start.bat", import.meta.url), "utf8");
+
+  assert.match(launcher, /SOURCE_CHECKOUT/i);
+  assert.match(launcher, /BANANA_REMIX_USE_PACKAGED/i);
+  assert.match(launcher, /goto dev_mode/i);
+});

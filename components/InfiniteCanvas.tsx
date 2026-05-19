@@ -81,7 +81,7 @@ const OutpaintingFrame: React.FC<OutpaintingFrameProps> = ({ outpaintingState, z
 
     return (
         <>
-            <div style={frameStyle} className="pointer-events-none border-2 border-dashed border-teal-500 bg-teal-500/10"></div>
+            <div style={frameStyle} className="outpaint-frame pointer-events-none"></div>
             
             {/* Handles */}
             <div style={frameStyle} className="pointer-events-auto">
@@ -89,7 +89,7 @@ const OutpaintingFrame: React.FC<OutpaintingFrameProps> = ({ outpaintingState, z
                     <div
                         key={dir}
                         onMouseDown={e => handleMouseDown(e, dir as any)}
-                        className={`absolute w-4 h-4 bg-white border-2 border-teal-500 rounded-sm transform-handle
+                        className={`transform-handle absolute h-4 w-4
                             ${dir.includes('n') ? 'top-0 -translate-y-1/2' : ''}
                             ${dir.includes('s') ? 'bottom-0 translate-y-1/2' : ''}
                             ${dir.includes('e') ? 'right-0 translate-x-1/2' : ''}
@@ -281,7 +281,7 @@ export const InfiniteCanvas = forwardRef<CanvasApi, InfiniteCanvasProps>(({
     }
   }, [isPanning, startPan, marqueeRect]);
 
-  const handleWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
+  const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
     if (!canvasRef.current) return;
 
@@ -301,6 +301,15 @@ export const InfiniteCanvas = forwardRef<CanvasApi, InfiniteCanvasProps>(({
     setZoom(newZoom);
     setPan({ x: newPanX, y: newPanY });
   }, [pan, zoom]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    canvas.addEventListener('wheel', handleWheel, { passive: false });
+    return () => {
+      canvas.removeEventListener('wheel', handleWheel);
+    };
+  }, [handleWheel]);
 
   const resetView = useCallback(() => {
     const canvas = canvasRef.current;
@@ -473,14 +482,12 @@ export const InfiniteCanvas = forwardRef<CanvasApi, InfiniteCanvasProps>(({
   return (
     <div
       ref={canvasRef}
-      className={`relative w-full h-full overflow-hidden bg-gray-50 
-        bg-[radial-gradient(#d1d5db_1px,transparent_1px)] [background-size:24px_24px]
+      className={`paper-canvas relative h-full w-full overflow-hidden
         ${cursorClass}`}
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
       onMouseMove={handleMouseMove}
-      onWheel={handleWheel}
       onContextMenu={handleCanvasContextMenu}
     >
       <div
@@ -508,7 +515,7 @@ export const InfiniteCanvas = forwardRef<CanvasApi, InfiniteCanvasProps>(({
           />
         ))}
         {selectionBbox && (
-             <div className="absolute border-2 border-blue-500/50 border-dashed pointer-events-none"
+             <div className="selection-sketch pointer-events-none absolute"
                 style={{
                     left: selectionBbox.minX,
                     top: selectionBbox.minY,
@@ -535,22 +542,22 @@ export const InfiniteCanvas = forwardRef<CanvasApi, InfiniteCanvasProps>(({
             transform: 'translateX(-50%)',
             zIndex: 10,
           }}
-          className="flex flex-col gap-2 p-2 bg-white/80 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 w-64"
+          className="float-panel flex w-64 flex-col gap-2 p-2"
           onMouseDown={e => e.stopPropagation()}
         >
-          <h3 className="text-sm font-semibold text-gray-700">擴展圖片</h3>
+          <h3 className="section-title text-sm">擴展圖片</h3>
           <div className="relative w-full">
             <input
                 type="text"
                 value={outpaintingPrompt}
                 onChange={(e) => setOutpaintingPrompt(e.target.value)}
                 placeholder="描述擴展內容，或自動產生提示詞"
-                className="w-full pl-3 pr-8 py-2 text-sm bg-white text-gray-800 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="sketch-input w-full py-2 pl-3 pr-8 text-sm"
             />
             <button
                 onClick={handleAutoPromptClick}
                 disabled={isAutoPrompting}
-                className="absolute right-1 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-purple-600 disabled:text-gray-300 disabled:cursor-wait transition-colors"
+                className="absolute right-1 top-1/2 -translate-y-1/2 p-1 text-[color:var(--hd-pencil)] transition-colors hover:text-[color:var(--hd-red)] disabled:cursor-wait disabled:opacity-40"
                 aria-label="自動產生提示詞"
             >
                 {isAutoPrompting ? (
@@ -566,15 +573,15 @@ export const InfiniteCanvas = forwardRef<CanvasApi, InfiniteCanvasProps>(({
             </button>
           </div>
           <div className="flex gap-2">
-              <button onClick={handleOutpaintingCancelClick} className="flex-1 px-3 py-1.5 text-sm bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">取消</button>
-              <button onClick={handleOutpaintingGenerateClick} className="flex-1 px-3 py-1.5 text-sm bg-teal-600 text-white rounded-md hover:bg-teal-700 whitespace-nowrap">生成 ✨</button>
+              <button onClick={handleOutpaintingCancelClick} className="btn-sketch btn-neutral flex-1 px-3 py-1.5 text-sm">取消</button>
+              <button onClick={handleOutpaintingGenerateClick} className="btn-sketch btn-green flex-1 whitespace-nowrap px-3 py-1.5 text-sm">生成 ✨</button>
           </div>
         </div>
       )}
 
       {selectionBbox && !outpaintingState && (
         <div
-          className="absolute z-10 generate-controls flex flex-col gap-2 p-2 bg-white/80 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200"
+          className="float-panel generate-controls absolute z-10 flex flex-col gap-2 p-2"
           style={{
               left: (selectionBbox.maxX * zoom + pan.x + 10),
               top: (selectionBbox.minY * zoom + pan.y),
@@ -584,7 +591,7 @@ export const InfiniteCanvas = forwardRef<CanvasApi, InfiniteCanvasProps>(({
           <select
             value={imageStyle}
             onChange={(e) => onSetImageStyle(e.target.value)}
-            className="w-full px-3 py-2 text-sm bg-white text-gray-800 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="sketch-select w-full px-3 py-2 text-sm"
           >
             {IMAGE_STYLES.map(style => (
               <option key={style.value} value={style.value}>{style.label}</option>
@@ -594,7 +601,7 @@ export const InfiniteCanvas = forwardRef<CanvasApi, InfiniteCanvasProps>(({
           <select
             value={imageAspectRatio}
             onChange={(e) => onSetImageAspectRatio(e.target.value)}
-            className="w-full px-3 py-2 text-sm bg-white text-gray-800 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="sketch-select w-full px-3 py-2 text-sm"
           >
             {Object.entries(ASPECT_RATIOS).map(([group, ratios]) => (
                 <optgroup label={group} key={group}>
@@ -608,7 +615,7 @@ export const InfiniteCanvas = forwardRef<CanvasApi, InfiniteCanvasProps>(({
           <button 
             onClick={handleGenerateClick}
             disabled={selectedHasRunningGeneration}
-            className="w-full px-4 py-2 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all transform hover:scale-105 disabled:bg-gray-400 disabled:scale-100 disabled:cursor-wait"
+            className="btn-sketch btn-purple w-full px-4 py-2 text-sm disabled:cursor-wait"
           >
               {selectedHasRunningGeneration ? '生成中...' : '生成 ✨'}
           </button>
@@ -623,7 +630,7 @@ export const InfiniteCanvas = forwardRef<CanvasApi, InfiniteCanvasProps>(({
         return (
           <div
             key={job.jobId}
-            className="generation-job-panel absolute z-20 w-72 max-w-[calc(100vw-1rem)] rounded-lg border border-gray-200 bg-white/95 p-3 text-gray-800 shadow-xl backdrop-blur-sm"
+            className="generation-job-panel absolute z-20 w-72 max-w-[calc(100vw-1rem)] p-3"
             style={{
               left: panelPosition.x,
               top: panelPosition.y,
@@ -635,19 +642,19 @@ export const InfiniteCanvas = forwardRef<CanvasApi, InfiniteCanvasProps>(({
             {job.isRunning && (
               <div className="flex flex-col gap-3">
                 <div className="flex items-start gap-3">
-                  <svg className="mt-0.5 h-5 w-5 flex-shrink-0 animate-spin text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <svg className="mt-0.5 h-5 w-5 flex-shrink-0 animate-spin text-[color:var(--hd-purple)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-gray-900">正在生成圖片</p>
-                    <p className="mt-1 text-xs leading-5 text-gray-600">{job.status}</p>
-                    <p className="mt-1 text-xs text-gray-500">已花費 {job.elapsed} 秒。Codex imagegen 可能需要一點時間。</p>
+                    <p className="text-sm font-semibold text-[color:var(--hd-ink)]">正在生成圖片</p>
+                    <p className="mt-1 text-xs leading-5 text-[color:var(--hd-pencil)]">{job.status}</p>
+                    <p className="mt-1 text-xs text-[color:var(--hd-muted)]">已花費 {job.elapsed} 秒。Codex imagegen 可能需要一點時間。</p>
                   </div>
                 </div>
                 <button
                   onClick={() => onCancelGeneration(job.jobId)}
-                  className="self-start rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100"
+                  className="btn-sketch btn-neutral self-start px-3 py-1.5 text-xs"
                 >
                   取消
                 </button>
@@ -657,28 +664,28 @@ export const InfiniteCanvas = forwardRef<CanvasApi, InfiniteCanvasProps>(({
             {!job.isRunning && resultDataUrl && (
               <div className="flex flex-col gap-3">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-gray-900">生成完成</p>
+                  <p className="section-title text-sm">生成完成</p>
                   <button
                     onClick={() => onDismissGenerationResult(job.jobId)}
-                    className="text-lg leading-none text-gray-400 hover:text-gray-700"
+                    className="text-lg leading-none text-[color:var(--hd-pencil)] hover:text-[color:var(--hd-ink)]"
                     aria-label="關閉生成結果"
                   >
                     &times;
                   </button>
                 </div>
-                <div className="flex max-h-44 items-center justify-center overflow-hidden rounded-md bg-gray-100">
+                <div className="image-sheet flex max-h-44 items-center justify-center overflow-hidden bg-[color:var(--hd-paper)]">
                   <img src={resultDataUrl} alt="Codex 生成圖片" className="max-h-44 w-full object-contain" draggable="false" />
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => onAddGeneratedImage(resultDataUrl, insertPoint)}
-                    className="flex-1 rounded-md bg-green-600 px-3 py-1.5 text-xs text-white hover:bg-green-700"
+                    className="btn-sketch btn-green flex-1 px-3 py-1.5 text-xs"
                   >
                     加入畫布
                   </button>
                   <button
                     onClick={() => onDownloadGeneratedImage(resultDataUrl)}
-                    className="flex-1 rounded-md bg-blue-600 px-3 py-1.5 text-xs text-white hover:bg-blue-700"
+                    className="btn-sketch btn-blue flex-1 px-3 py-1.5 text-xs"
                   >
                     下載
                   </button>
@@ -689,12 +696,12 @@ export const InfiniteCanvas = forwardRef<CanvasApi, InfiniteCanvasProps>(({
             {!job.isRunning && !resultDataUrl && (
               <div className="flex flex-col gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">{job.status}</p>
-                  {job.error && <p className="mt-1 text-xs leading-5 text-red-600">{job.error}</p>}
+                  <p className="text-sm font-semibold text-[color:var(--hd-ink)]">{job.status}</p>
+                  {job.error && <p className="mt-1 text-xs leading-5 text-[color:var(--hd-red)]">{job.error}</p>}
                 </div>
                 <button
                   onClick={() => onDismissGenerationResult(job.jobId)}
-                  className="self-start rounded-md bg-gray-200 px-3 py-1.5 text-xs text-gray-800 hover:bg-gray-300"
+                  className="btn-sketch btn-neutral self-start px-3 py-1.5 text-xs"
                 >
                   關閉
                 </button>
@@ -706,7 +713,7 @@ export const InfiniteCanvas = forwardRef<CanvasApi, InfiniteCanvasProps>(({
 
       {marqueeRect && (
         <div 
-          className="absolute border-2 border-dashed border-blue-500 bg-blue-500/10 pointer-events-none"
+          className="marquee-sketch pointer-events-none absolute"
           style={{
             left: Math.min(marqueeRect.start.x, marqueeRect.end.x),
             top: Math.min(marqueeRect.start.y, marqueeRect.end.y),

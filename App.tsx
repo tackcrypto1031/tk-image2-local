@@ -242,7 +242,7 @@ const CodexCliStatusBadge: React.FC<{
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`absolute bottom-4 left-4 z-30 flex max-w-[min(420px,calc(100vw-2rem))] items-center gap-3 rounded-lg border px-3 py-2 text-left shadow-lg backdrop-blur-sm transition hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-80 ${styles.shell}`}
+      className={`cli-status absolute bottom-4 left-4 z-30 flex max-w-[min(420px,calc(100vw-2rem))] items-center gap-3 px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:opacity-80 ${styles.shell}`}
       aria-label={`Codex CLI ${view.label}`}
     >
       <span className={`h-2.5 w-2.5 flex-shrink-0 rounded-full ${styles.dot}`} aria-hidden="true" />
@@ -250,7 +250,7 @@ const CodexCliStatusBadge: React.FC<{
         <span className="block text-sm font-semibold leading-5">Codex CLI：{view.label}</span>
         <span className="block truncate text-xs leading-4 opacity-80">{view.detail}</span>
       </span>
-      <span className={`flex-shrink-0 rounded-md px-2 py-1 text-[11px] font-semibold leading-4 ${styles.action}`}>
+      <span className={`cli-action flex-shrink-0 px-2 py-1 text-[11px] font-semibold leading-4 ${styles.action}`}>
         {view.actionLabel}
       </span>
     </button>
@@ -1145,36 +1145,37 @@ const App: React.FC = () => {
   const isCodexCliStatusDisabled = !window.codexImage || isCheckingCodexCli || isLaunchingCodexCliSetup;
 
   return (
-    <main className="relative w-screen h-screen bg-gray-100 font-sans" onClick={() => setContextMenu(null)}>
+    <main className="app-shell relative w-screen h-screen font-sans" onClick={() => setContextMenu(null)}>
       <div 
-        className={`absolute top-4 left-4 z-20 p-4 bg-white/80 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 w-64 flex flex-col gap-4 transition-transform duration-300 ease-in-out ${isMenuCollapsed ? '-translate-x-full' : 'translate-x-0'}`}
+        className={`sketch-panel tool-panel absolute top-4 left-4 z-20 flex flex-col gap-4 p-4 transition-transform duration-300 ease-in-out ${isMenuCollapsed ? '-translate-x-full' : 'translate-x-0'}`}
       >
         <div>
-          <h1 className="text-xl font-bold text-gray-800">無限畫布</h1>
-          <p className="text-sm text-gray-600 mt-1">選取物件後即可調整或生成。</p>
+          <span className="scribble-tag">image sketchbook</span>
+          <h1 className="panel-title text-xl font-bold">無限畫布</h1>
+          <p className="panel-copy mt-1 text-sm">選取物件後即可調整或生成。</p>
         </div>
         <div className="grid grid-cols-2 gap-2">
-            <button onClick={() => addNote()} className="px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors col-span-1">新增便條</button>
-            <button onClick={() => addArrow()} className="px-3 py-2 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition-colors col-span-1">新增箭頭</button>
-            <button onClick={() => addDrawing()} className="px-3 py-2 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition-colors col-span-2">新增繪圖</button>
-            <label className="cursor-pointer px-3 py-2 text-sm text-center bg-orange-500 text-white rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50 transition-colors col-span-2">
+            <button onClick={() => addNote()} className="btn-sketch btn-yellow col-span-1 px-3 py-2 text-sm">新增便條</button>
+            <button onClick={() => addArrow()} className="btn-sketch btn-green col-span-1 px-3 py-2 text-sm">新增箭頭</button>
+            <button onClick={() => addDrawing()} className="btn-sketch btn-purple col-span-2 px-3 py-2 text-sm">新增繪圖</button>
+            <label className="btn-sketch btn-orange col-span-2 cursor-pointer px-3 py-2 text-center text-sm">
                 新增圖片
                 <input type="file" accept="image/*" ref={imageInputRef} className="hidden" onChange={handleImageUpload} multiple />
             </label>
         </div>
 
         {showImageEditInMenu && (
-            <div className="border-t pt-3 mt-1 flex flex-col gap-2">
-                <h2 className="text-md font-semibold text-gray-700 mb-1">圖片編輯</h2>
+            <div className="sketch-section flex flex-col gap-2">
+                <h2 className="section-title mb-1">圖片編輯</h2>
                 <button
                     onClick={() => handleStartImageEdit(selectedElementIds[0])}
-                    className="w-full px-3 py-2 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition-colors"
+                    className="btn-sketch btn-blue w-full px-3 py-2 text-sm"
                 >
                     移除或編輯物件
                 </button>
                 <button
                     onClick={() => handleStartOutpainting(selectedElementIds[0])}
-                    className="w-full px-3 py-2 text-sm bg-teal-600 text-white rounded-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50 transition-colors"
+                    className="btn-sketch btn-green w-full px-3 py-2 text-sm"
                 >
                     擴展圖片
                 </button>
@@ -1182,8 +1183,8 @@ const App: React.FC = () => {
         )}
 
         {selectedElementIds.length > 0 && canChangeColor && (
-            <div className="border-t pt-3 mt-1">
-                <h2 className="text-md font-semibold text-gray-700 mb-2">顏色</h2>
+            <div className="sketch-section">
+                <h2 className="section-title mb-2">顏色</h2>
                 <div className="grid grid-cols-8 gap-1.5">
                     {COLORS.map(color => {
                         const isNoteSelected = selectedElements.some(el => el.type === 'note');
@@ -1193,7 +1194,7 @@ const App: React.FC = () => {
                             <button
                                 key={color.name}
                                 onClick={() => handleColorChange(finalColor)}
-                                className={`w-6 h-6 rounded-full border-2 ${color.bg} border-white`}
+                                className={`color-dot h-6 w-6 ${color.bg}`}
                                 aria-label={`改成${color.name}`}
                             />
                         )
@@ -1202,31 +1203,31 @@ const App: React.FC = () => {
             </div>
         )}
 
-         <div className="flex flex-col gap-2 border-t pt-3 mt-3">
-            <h2 className="text-md font-semibold text-gray-700">控制</h2>
+         <div className="sketch-section flex flex-col gap-2">
+            <h2 className="section-title">控制</h2>
              <div className="grid grid-cols-2 gap-2">
-                <button onClick={undo} disabled={!canUndo} className="px-3 py-2 text-sm bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors">復原</button>
-                <button onClick={redo} disabled={!canRedo} className="px-3 py-2 text-sm bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors">重做</button>
-                 <button onClick={handleExportCanvas} className="px-3 py-2 text-sm bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors">匯出</button>
-                <label className="cursor-pointer text-center px-3 py-2 text-sm bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors">
+                <button onClick={undo} disabled={!canUndo} className="btn-sketch btn-neutral px-3 py-2 text-sm">復原</button>
+                <button onClick={redo} disabled={!canRedo} className="btn-sketch btn-neutral px-3 py-2 text-sm">重做</button>
+                 <button onClick={handleExportCanvas} className="btn-sketch btn-green px-3 py-2 text-sm">匯出</button>
+                <label className="btn-sketch btn-green cursor-pointer px-3 py-2 text-center text-sm">
                     匯入
                     <input type="file" accept=".json" ref={importInputRef} className="hidden" onChange={handleImportCanvas} />
                 </label>
             </div>
-             <button onClick={bringToFront} disabled={selectedElementIds.length === 0} className="px-3 py-2 text-sm bg-gray-700 text-white rounded-md hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors">↑ 移到最上層</button>
-             <button onClick={sendToBack} disabled={selectedElementIds.length === 0} className="px-3 py-2 text-sm bg-gray-500 text-white rounded-md hover:bg-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors">↓ 移到最下層</button>
-             <button onClick={deleteElement} disabled={selectedElementIds.length === 0} className="px-3 py-2 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors">刪除</button>
-            <button onClick={resetView} className="px-3 py-2 text-sm bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition-colors">重設視圖</button>
+             <button onClick={bringToFront} disabled={selectedElementIds.length === 0} className="btn-sketch btn-neutral px-3 py-2 text-sm">↑ 移到最上層</button>
+             <button onClick={sendToBack} disabled={selectedElementIds.length === 0} className="btn-sketch btn-neutral px-3 py-2 text-sm">↓ 移到最下層</button>
+             <button onClick={deleteElement} disabled={selectedElementIds.length === 0} className="btn-sketch btn-red px-3 py-2 text-sm">刪除</button>
+            <button onClick={resetView} className="btn-sketch btn-neutral px-3 py-2 text-sm">重設視圖</button>
         </div>
       </div>
       
       <button
         onClick={() => setIsMenuCollapsed(!isMenuCollapsed)}
-        className="absolute top-4 z-20 p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-lg border border-gray-200 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-all duration-300 ease-in-out"
-        style={{ left: isMenuCollapsed ? '1rem' : 'calc(1rem + 16rem + 0.5rem)' }}
+        className="btn-icon-sketch absolute top-4 z-20 p-2 transition-all duration-300 ease-in-out"
+        style={{ left: isMenuCollapsed ? '1rem' : 'calc(1rem + 17rem + 0.75rem)' }}
         aria-label={isMenuCollapsed ? '展開選單' : '收合選單'}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             {isMenuCollapsed ? (
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             ) : (
@@ -1303,9 +1304,9 @@ const App: React.FC = () => {
       )}
 
       {isDraggingOver && (
-        <div className="absolute inset-0 z-[100] bg-black/50 flex items-center justify-center pointer-events-none">
-          <div className="text-white text-2xl font-bold p-8 border-4 border-dashed rounded-lg bg-gray-800/50">
-            Drop images to add to canvas
+        <div className="drag-overlay pointer-events-none absolute inset-0 z-[100] flex items-center justify-center">
+          <div className="drag-card border-4 border-dashed p-8 text-2xl font-bold">
+            放開滑鼠加入圖片
           </div>
         </div>
       )}

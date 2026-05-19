@@ -8,7 +8,7 @@ interface DrawingModalProps {
 }
 
 const BRUSH_SIZES = [2, 5, 10, 20, 30];
-const COLORS = ['#000000', '#EF4444', '#F97316', '#EAB308', '#22C55E', '#3B82F6', '#8B5CF6', '#EC4899'];
+const COLORS = ['#2d2a26', '#e84a3a', '#d97825', '#d9a91f', '#4fb585', '#4a86e0', '#8b5bb7', '#e8779e'];
 
 // Use a large, fixed-size canvas for a better drawing experience
 const CANVAS_INTERNAL_WIDTH = 1200;
@@ -20,7 +20,7 @@ export const DrawingModal: React.FC<DrawingModalProps> = ({ element, onSave, onC
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [tool, setTool] = useState<'pencil' | 'eraser'>('pencil');
-  const [color, setColor] = useState('#000000');
+  const [color, setColor] = useState('#2d2a26');
   const [brushSize, setBrushSize] = useState(5);
   const [showColorPicker, setShowColorPicker] = useState(false);
 
@@ -80,7 +80,7 @@ export const DrawingModal: React.FC<DrawingModalProps> = ({ element, onSave, onC
     contextRef.current = context;
 
     const loadAndInitialize = () => {
-        context.fillStyle = 'white';
+        context.fillStyle = '#fbf6ee';
         context.fillRect(0, 0, canvas.width, canvas.height);
 
         if (element.src) {
@@ -171,7 +171,7 @@ export const DrawingModal: React.FC<DrawingModalProps> = ({ element, onSave, onC
     const canvas = canvasRef.current;
     const context = contextRef.current;
     if (canvas && context) {
-      context.fillStyle = 'white';
+      context.fillStyle = '#fbf6ee';
       context.fillRect(0, 0, canvas.width, canvas.height);
       saveHistoryState();
     }
@@ -189,8 +189,8 @@ export const DrawingModal: React.FC<DrawingModalProps> = ({ element, onSave, onC
   }
 
   return (
-    <div className="absolute inset-0 z-40 bg-black/60 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-lg shadow-2xl w-full max-w-7xl h-[95vh] flex flex-col" onClick={e => e.stopPropagation()}>
+    <div className="modal-scrim absolute inset-0 z-40 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="sketch-modal flex h-[95vh] w-full max-w-7xl flex-col" onClick={e => e.stopPropagation()}>
         <div className="p-4 border-b flex justify-between items-center bg-gray-50 rounded-t-lg flex-shrink-0">
           <h2 className="text-xl font-bold text-gray-800">繪圖板</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
@@ -199,8 +199,8 @@ export const DrawingModal: React.FC<DrawingModalProps> = ({ element, onSave, onC
         <div className="p-2 border-b flex flex-wrap items-center gap-4 bg-gray-100 flex-shrink-0">
             {/* Tools */}
             <div className="flex items-center gap-2">
-                <button onClick={() => setTool('pencil')} className={`p-2 rounded ${tool === 'pencil' ? 'bg-blue-500 text-white' : 'bg-white text-gray-800 hover:bg-gray-200'}`}>鉛筆</button>
-                <button onClick={() => setTool('eraser')} className={`p-2 rounded ${tool === 'eraser' ? 'bg-blue-500 text-white' : 'bg-white text-gray-800 hover:bg-gray-200'}`}>橡皮擦</button>
+                <button onClick={() => setTool('pencil')} className={`p-2 ${tool === 'pencil' ? 'bg-blue-500 text-white' : 'bg-white text-gray-800 hover:bg-gray-200'}`}>鉛筆</button>
+                <button onClick={() => setTool('eraser')} className={`p-2 ${tool === 'eraser' ? 'bg-blue-500 text-white' : 'bg-white text-gray-800 hover:bg-gray-200'}`}>橡皮擦</button>
             </div>
             {/* Undo/Redo */}
             <div className="flex items-center gap-2 pl-2 border-l border-gray-300">

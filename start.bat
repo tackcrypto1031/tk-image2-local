@@ -8,10 +8,19 @@ set "APP_EXE=%~dp0release\win-unpacked\Codex Image Canvas.exe"
 set "LOG_DIR=%~dp0data\logs"
 set "LOG_FILE=%LOG_DIR%\start.log"
 set "BANANA_REMIX_PROJECT_DIR=%~dp0"
+set "SOURCE_CHECKOUT="
+if exist "%~dp0.git" set "SOURCE_CHECKOUT=1"
 
 if not exist "%LOG_DIR%" mkdir "%LOG_DIR%" >nul 2>nul
 
 echo [%date% %time%] Starting %APP_NAME% from %~dp0>> "%LOG_FILE%"
+
+if defined SOURCE_CHECKOUT if not "%BANANA_REMIX_USE_PACKAGED%"=="1" (
+  echo Source checkout detected.
+  echo Using Electron development mode so start.bat reflects the current branch.
+  echo [%date% %time%] Source checkout detected; using Electron development mode.>> "%LOG_FILE%"
+  goto dev_mode
+)
 
 if exist "%APP_EXE%" (
   echo Opening packaged app:
@@ -26,6 +35,7 @@ echo Packaged app was not found.
 echo Falling back to Electron development mode.
 echo [%date% %time%] Packaged app missing; using Electron development mode.>> "%LOG_FILE%"
 
+:dev_mode
 where node >nul 2>nul
 if errorlevel 1 (
   echo Node.js was not found in PATH. Please install Node.js, then run this launcher again.
