@@ -54,6 +54,9 @@ echo [%date% %time%] Using npm: %NPM_CMD%>> "%LOG_FILE%"
 call :ensure_dependencies
 if errorlevel 1 goto fail
 
+call :ensure_electron_runtime
+if errorlevel 1 goto fail
+
 call "%NPM_CMD%" run dev:electron
 if errorlevel 1 goto fail
 exit /b 0
@@ -86,13 +89,32 @@ echo Dependency repair finished, but required files are still missing.
 echo [%date% %time%] ERROR: Dependency repair failed required-file check.>> "%LOG_FILE%"
 exit /b 1
 
+:ensure_electron_runtime
+if exist "%~dp0node_modules\electron\dist\electron.exe" exit /b 0
+
+if not exist "%~dp0node_modules\electron\install.js" (
+  echo Electron installer was not found after dependency install.
+  echo [%date% %time%] ERROR: node_modules\electron\install.js missing.>> "%LOG_FILE%"
+  exit /b 1
+)
+
+echo Installing Electron runtime...
+echo [%date% %time%] Electron runtime missing; running electron install.js directly.>> "%LOG_FILE%"
+call node "%~dp0node_modules\electron\install.js"
+if errorlevel 1 exit /b 1
+
+if exist "%~dp0node_modules\electron\dist\electron.exe" exit /b 0
+
+echo Electron runtime install finished, but electron.exe is still missing.
+echo [%date% %time%] ERROR: Electron runtime install did not produce dist\electron.exe.>> "%LOG_FILE%"
+exit /b 1
+
 :check_dependencies
 set "DEPS_OK=1"
 if not exist "%~dp0node_modules\react\package.json" set "DEPS_OK=0"
 if not exist "%~dp0node_modules\react-dom\package.json" set "DEPS_OK=0"
 if not exist "%~dp0node_modules\vite\bin\vite.js" set "DEPS_OK=0"
 if not exist "%~dp0node_modules\electron\cli.js" set "DEPS_OK=0"
-if not exist "%~dp0node_modules\electron\dist\electron.exe" set "DEPS_OK=0"
 exit /b 0
 
 :fail
