@@ -33,3 +33,9 @@ test("Windows launcher dependency preflight lets Electron repair a missing binar
   assert.match(dependencyCheck, /node_modules\\electron\\cli\.js/i);
   assert.doesNotMatch(dependencyCheck, /node_modules\\electron\\dist\\electron\.exe/i);
 });
+
+test("Windows launcher does not use a second post-install batch label jump", () => {
+  const launcher = readFileSync(new URL("../start.bat", import.meta.url), "utf8");
+
+  assert.doesNotMatch(launcher, /call\s+:ensure_electron_runtime/i);
+});
