@@ -16,6 +16,8 @@ data/generated
 data/logs
 .omx
 .playwright-mcp
+docs/superpowers
+marketing
 *.local
 
 # Editor directories and files
