@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
 
 import { resolveDevToolPaths, validateDevToolPaths } from "../scripts/dev-electron.mjs";
 
@@ -48,12 +50,24 @@ test("Windows launcher prefers dev mode in source checkouts", () => {
   assert.match(launcher, /goto dev_mode/i);
 });
 
-test("macOS launcher exists and is executable", () => {
+test("macOS launcher exists and is tracked as executable", (t) => {
   const launcherPath = new URL("../start.command", import.meta.url);
   const stat = statSync(launcherPath);
 
   assert.equal(stat.isFile(), true);
-  assert.equal((stat.mode & 0o111) !== 0, true, "start.command should be executable (chmod +x)");
+
+  let gitEntry = "";
+  try {
+    gitEntry = execFileSync("git", ["ls-files", "--stage", "--", "start.command"], {
+      cwd: fileURLToPath(new URL("..", import.meta.url)),
+      encoding: "utf8"
+    });
+  } catch {
+    t.skip("git metadata unavailable; cannot verify tracked executable bit");
+    return;
+  }
+
+  assert.match(gitEntry, /^100755\s/, "start.command should be tracked with executable mode 100755");
 });
 
 test("macOS launcher uses bash shebang and respects source checkout vs packaged app", () => {
