@@ -1147,7 +1147,7 @@ const App: React.FC = () => {
   return (
     <main className="app-shell relative w-screen h-screen font-sans" onClick={() => setContextMenu(null)}>
       <div 
-        className={`sketch-panel tool-panel absolute top-4 left-4 z-20 flex flex-col gap-4 p-4 transition-transform duration-300 ease-in-out ${isMenuCollapsed ? '-translate-x-full' : 'translate-x-0'}`}
+        className={`sketch-panel tool-panel absolute top-4 left-4 z-20 flex flex-col gap-4 p-4 ${isMenuCollapsed ? 'tool-panel--collapsed' : ''}`}
       >
         <div>
           <span className="scribble-tag">image sketchbook</span>

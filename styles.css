@@ -87,7 +87,13 @@ textarea {
 
 .tool-panel {
   width: 17rem;
-  transform: rotate(-0.35deg);
+  transform: translateX(0) rotate(-0.35deg);
+  transition: transform 300ms ease-in-out;
+  will-change: transform;
+}
+
+.tool-panel--collapsed {
+  transform: translateX(calc(-100% - 1rem)) rotate(-0.35deg);
 }
 
 .tool-panel::before,
