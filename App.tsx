@@ -56,7 +56,7 @@ const getRandomPosition = () => ({
 
 const getCodexImageBridge = () => {
   if (!window.codexImage) {
-    throw new Error("Codex 圖像生成只能在 Electron 桌面版使用。請用 start.bat 或 npm run dev:electron 啟動。");
+    throw new Error("Codex 圖像生成只能在 Electron 桌面版使用。請用 start.bat / start.command 或 npm run dev:electron 啟動。");
   }
   return window.codexImage;
 };

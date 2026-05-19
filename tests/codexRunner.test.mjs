@@ -5,6 +5,7 @@ import path from "node:path";
 import test from "node:test";
 import {
   buildCodexCliSetupScript,
+  buildCodexCliSetupScriptBash,
   buildImagegenPrompt,
   commandInvocation,
   createCodexRunner,
@@ -118,6 +119,23 @@ test("escapes custom Codex binary paths in the setup script", () => {
   const script = buildCodexCliSetupScript({ codexBin: "C:\\Tools\\Codex's\\codex.cmd" });
 
   assert.match(script, /\$codexBin = 'C:\\Tools\\Codex''s\\codex\.cmd'/);
+});
+
+test("builds a macOS bash Codex CLI setup script that installs only when missing", () => {
+  const script = buildCodexCliSetupScriptBash({ codexBin: "codex" });
+
+  assert.match(script, /^#!\/usr\/bin\/env bash/);
+  assert.match(script, /codexBin='codex'/);
+  assert.match(script, /command -v "\$codexBin"/);
+  assert.match(script, /npm install -g @openai\/codex@latest/);
+  assert.match(script, /"\$codexBin" login/);
+  assert.match(script, /pause_and_exit/);
+});
+
+test("escapes custom Codex binary paths with single quotes in the bash setup script", () => {
+  const script = buildCodexCliSetupScriptBash({ codexBin: "/Users/me/Codex's bin/codex" });
+
+  assert.match(script, /codexBin='\/Users\/me\/Codex'\\''s bin\/codex'/);
 });
 
 test("accepts generated image output even when Codex final message is empty", async () => {

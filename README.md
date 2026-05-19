@@ -13,7 +13,8 @@ https://github.com/user-attachments/assets/62f8569c-7496-4d3b-a74f-1734baaa839a
 
 ### 系統依賴
 
-- Windows 10/11：`start.bat`、Codex CLI 安裝/登入輔助視窗、目前的 Electron 打包設定都以 Windows 為主要目標。
+- Windows 10/11：`start.bat`、Codex CLI 安裝/登入輔助視窗（PowerShell）、Electron 打包 `release/win-unpacked/`。
+- macOS 12+：`start.command`、Codex CLI 安裝/登入輔助視窗（Terminal.app + bash）、Electron 打包 `release/mac-arm64/` 或 `release/mac/`。
 - Node.js 與 npm：建議 Node.js 20 LTS 以上。此版本已用 Node.js `v24.15.0`、npm `11.12.1` 驗證。
 - Git：用來 clone / pull / push 專案。
 - Codex CLI：圖片生成需要本機 `codex` 指令與 `imagegen` 能力。若尚未安裝，可用 `npm install -g @openai/codex@latest` 安裝。
@@ -60,9 +61,10 @@ codex login
 
 ## 啟動桌面工具
 
-在本資料夾雙擊 `start.bat`。
+- Windows：在本資料夾雙擊 `start.bat`。啟動器會優先開啟 `release/win-unpacked/Codex Image Canvas.exe`。
+- macOS：在本資料夾雙擊 `start.command`（首次使用前若被 Gatekeeper 擋，請在 Finder 上對檔案按右鍵 → 開啟 → 確認）。啟動器會優先開啟 `release/mac-arm64/Codex Image Canvas.app`，找不到時退回 `release/mac/`。
 
-啟動器會優先開啟 `release/win-unpacked/Codex Image Canvas.exe`。如果打包版不存在，會自動執行 `npm install` 並改用 Electron 開發模式。
+兩個啟動器在「打包版不存在」時都會自動執行 `npm install` 並改用 Electron 開發模式。
 
 手動啟動 Electron 與 Vite renderer：
 
@@ -83,7 +85,8 @@ npm run dev:electron
 
 ```bash
 npm run build
-npm run pack:electron
+npm run pack:electron          # Windows host → release/win-unpacked/
+npm run pack:electron -- --mac # macOS host → release/mac-arm64/ 或 release/mac/
 ```
 
 `pack:electron` 會在 `release/` 底下建立未封裝安裝器的 Windows 版本。`release/` 是本機建置產物，不會納入 git。

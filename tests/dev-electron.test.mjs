@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
 
 import { resolveDevToolPaths, validateDevToolPaths } from "../scripts/dev-electron.mjs";
 
@@ -46,4 +48,41 @@ test("Windows launcher prefers dev mode in source checkouts", () => {
   assert.match(launcher, /SOURCE_CHECKOUT/i);
   assert.match(launcher, /BANANA_REMIX_USE_PACKAGED/i);
   assert.match(launcher, /goto dev_mode/i);
+});
+
+test("macOS launcher exists and is tracked as executable", (t) => {
+  const launcherPath = new URL("../start.command", import.meta.url);
+  const stat = statSync(launcherPath);
+
+  assert.equal(stat.isFile(), true);
+
+  let gitEntry = "";
+  try {
+    gitEntry = execFileSync("git", ["ls-files", "--stage", "--", "start.command"], {
+      cwd: fileURLToPath(new URL("..", import.meta.url)),
+      encoding: "utf8"
+    });
+  } catch {
+    t.skip("git metadata unavailable; cannot verify tracked executable bit");
+    return;
+  }
+
+  assert.match(gitEntry, /^100755\s/, "start.command should be tracked with executable mode 100755");
+});
+
+test("macOS launcher uses bash shebang and respects source checkout vs packaged app", () => {
+  const launcher = readFileSync(new URL("../start.command", import.meta.url), "utf8");
+
+  assert.match(launcher, /^#!\/usr\/bin\/env bash/);
+  assert.match(launcher, /SOURCE_CHECKOUT/);
+  assert.match(launcher, /BANANA_REMIX_USE_PACKAGED/);
+  assert.match(launcher, /release\/mac/);
+  assert.match(launcher, /npm run dev:electron/);
+});
+
+test("macOS launcher dependency preflight matches the Windows electron CLI check", () => {
+  const launcher = readFileSync(new URL("../start.command", import.meta.url), "utf8");
+
+  assert.match(launcher, /node_modules\/electron\/cli\.js/);
+  assert.doesNotMatch(launcher, /node_modules\/electron\/dist\/electron\.exe/);
 });

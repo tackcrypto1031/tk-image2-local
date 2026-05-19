@@ -95,6 +95,25 @@ function resolveProjectRoot(appDir) {
   if (process.env.BANANA_REMIX_PROJECT_DIR) {
     return path.resolve(process.env.BANANA_REMIX_PROJECT_DIR);
   }
+  if (app.isPackaged) {
+    const exeDir = path.dirname(app.getPath("exe"));
+    let candidate = exeDir;
+    for (let depth = 0; depth < 8; depth += 1) {
+      if (path.basename(candidate).toLowerCase() === "release") {
+        const releaseParent = path.dirname(candidate);
+        if (isProjectRoot(releaseParent)) {
+          return releaseParent;
+        }
+        break;
+      }
+      const parent = path.dirname(candidate);
+      if (parent === candidate) {
+        break;
+      }
+      candidate = parent;
+    }
+    return app.getPath("userData");
+  }
   return findProjectRoot(process.cwd()) || findProjectRoot(path.resolve(appDir, "..")) || path.resolve(appDir, "..");
 }
 

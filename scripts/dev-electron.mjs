@@ -68,7 +68,8 @@ export function validateDevToolPaths(toolPaths) {
   }
 
   const details = missing.map(([label, filePath]) => `  - ${label}: ${filePath}`).join("\n");
-  throw new Error(`Missing development dependencies:\n${details}\nRun start.bat again, or run npm install --include=dev.`);
+  const launcherHint = process.platform === "darwin" ? "start.command" : "start.bat";
+  throw new Error(`Missing development dependencies:\n${details}\nRun ${launcherHint} again, or run npm install --include=dev.`);
 }
 
 async function main() {
