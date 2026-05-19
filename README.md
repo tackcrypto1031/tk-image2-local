@@ -1,10 +1,13 @@
 # Codex 圖像畫布
 
 透過本機 Codex CLI `imagegen` 生成圖片的 Electron 桌面無限畫布，支援拖放圖片、便條、繪圖、圖像生成、混圖、擴圖、紅色遮罩編輯、自動儲存、匯入與匯出。
+
 <img width="2386" height="1532" alt="2026-05-19_131528" src="https://github.com/user-attachments/assets/f57e7339-8711-4197-aa4e-d42a6ecd70b3" />
 
 https://github.com/user-attachments/assets/62f8569c-7496-4d3b-a74f-1734baaa839a
 
+原設計概念為 Prompt Case 做的Ai Studio工具，我拿來改XD
+請支持原大神~~ https://www.threads.com/@prompt_case
 
 ## 需求與依賴
 
