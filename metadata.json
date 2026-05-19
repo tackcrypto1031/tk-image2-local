@@ -1,0 +1,6 @@
+{
+  "name": "Codex 圖像畫布",
+  "description": "透過本機 Codex CLI imagegen 生成圖片的 Electron 桌面無限畫布，支援拖放圖片、便條、繪圖、圖像生成、混圖、擴圖、紅色遮罩編輯、自動儲存、匯入與匯出。",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
